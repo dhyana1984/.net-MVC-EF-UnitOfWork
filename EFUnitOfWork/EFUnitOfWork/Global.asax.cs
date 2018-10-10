@@ -1,4 +1,6 @@
-﻿using System;
+﻿using AutoMapper;
+using EFUnitOfWork.Mappings;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -16,6 +18,11 @@ namespace EFUnitOfWork
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             BundleConfig.RegisterBundles(BundleTable.Bundles);
+
+            ViewEngines.Engines.Clear();
+            ViewEngines.Engines.Add(new RazorViewEngine());
+
+            Mapper.Initialize(cfg => cfg.AddProfile<AutoMapperProfile>());
         }
     }
 }

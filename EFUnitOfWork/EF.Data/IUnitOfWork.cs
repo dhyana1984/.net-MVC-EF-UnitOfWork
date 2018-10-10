@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace EF.Data
 {
-    class IUnitOfWork
+   public interface IUnitOfWork
     {
+        void Commit();
+        void RollBack();
     }
 }
