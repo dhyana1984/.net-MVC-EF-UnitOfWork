@@ -43,7 +43,7 @@ namespace EF.Data
             base.OnModelCreating(modelBuilder);
         }
 
-
+     
     }
 
 

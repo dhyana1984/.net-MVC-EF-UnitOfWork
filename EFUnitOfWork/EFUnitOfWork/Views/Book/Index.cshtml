@@ -5,10 +5,10 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<h2>Index</h2>
+<h2>二手书店</h2>
 
 <p>
-    @Html.ActionLink("Create New", "Create")
+    @Html.ActionLink("Create New", "CreateEditBook","Book",null,new { @class= "btn btn-primary" })
 </p>
 <table class="table">
     <tr>
@@ -30,12 +30,7 @@
         <th>
             @Html.DisplayNameFor(model => model.Url)
         </th>
-        <th>
-            @Html.DisplayNameFor(model => model.CreatedTime)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.ModifiedTime)
-        </th>
+
         <th></th>
     </tr>
 
@@ -59,12 +54,7 @@
         <td>
             @Html.DisplayFor(modelItem => item.Url)
         </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.CreatedTime)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.ModifiedTime)
-        </td>
+
         <td>
             @Html.ActionLink("Edit", "Edit", new { id=item.ID }) |
             @Html.ActionLink("Details", "Details", new { id=item.ID }) |
