@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace EFUnitOfWork.UploadUtils
@@ -50,9 +51,65 @@ namespace EFUnitOfWork.UploadUtils
                 storeFileName = FileHelper.GetFileNameWithoutExtension(baseFileName) + extentionName;
 
                 //使用单例模式确保
-                if(!MergeFile)
+                if(!MergeFileSingleton.Instance.InUse(baseFileName))
+                {
+                    MergeFileSingleton.Instance.AddFile(baseFileName);
+                    if(FileHelper.Exist(baseFileName))
+                    {
+                        FileHelper.Delete(baseFileName);
+                    }
+                }
+
+                var mergeList = new List<SortedFile>();
+                foreach (var file in filesList)
+                {
+                    var sortedFile = new SortedFile
+                    {
+                        FileName = file
+                    };
+                baseFileName = file.Substring(0, file.IndexOf(PARTTOKEN));
+                trailingTokens = file.Substring(file.IndexOf(PARTTOKEN) + PARTTOKEN.Length);
+                int.TryParse(trailingTokens.Substring(0, trailingTokens.IndexOf(".")), out fileIndex);
+                sortedFile.FileOrder = fileIndex;
+                mergeList.Add(sortedFile);
+
+                }
+
+                // 按照文件命名顺序进行排序开始合并
+                var mergeOrder = mergeList.OrderBy(s => s.FileOrder).ToList();
+                using (var fileStream = new FileStream(baseFileName, FileMode.Create))
+                {
+                    try
+                    {
+                        foreach (var chunk in mergeOrder)
+                        {
+                            PollyHelper.WaitAndRetry<IOException>(() =>
+                            {
+                                using (var fileChunk = new FileStream(chunk.FileName, FileMode.Open))
+                                {
+                                    fileChunk.CopyTo(fileStream);
+                                }
+                            });
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        //记录异常日志
+                        result = false;
+                        throw ex;
+                    }
+                }
+                result = true;
+                //在单例模式中未锁住文件
+                MergeFileSingleton.Instance.RemoveFile(baseFileName);
+
+                Parallel.ForEach(mergeList, (d) =>
+                {
+                    FileHelper.Delete(d.FileName);
+                });
 
             }
+            return result;
         }
     }
 }

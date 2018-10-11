@@ -17,7 +17,7 @@ namespace EF.Data.Configuration
         {
             if (connection is SqlConnection sqlConn)
             {
-                return "2017";
+                return @"2012";
             }
             else
             {

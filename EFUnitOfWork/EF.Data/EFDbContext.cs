@@ -1,4 +1,5 @@
 ﻿using EF.Core.Entity;
+using EF.Data.Configuration;
 using EF.Data.Conventions;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace EF.Data
 {
-    //[DbConfigurationType(typeof())]
+   [DbConfigurationType(typeof(EFDbConfiguration))]
    public class EFDbContext:DbContext
     {
         public EFDbContext():base("name=DbConnectionString")
@@ -30,7 +31,7 @@ namespace EF.Data
             //添加日期约定
             modelBuilder.Conventions.Add(new DateConvention());
 
-            //反射出所有EF配置类并注册到配置中
+            //反射出所有EntityMapping类并注册到配置中
             var typesToRegister = Assembly.GetExecutingAssembly().GetTypes().Where(types => !string.IsNullOrEmpty(types.Namespace))
                               .Where(type => type.BaseType != null
                                      && type.BaseType.IsGenericType
@@ -43,7 +44,7 @@ namespace EF.Data
             base.OnModelCreating(modelBuilder);
         }
 
-     
+        
     }
 
 

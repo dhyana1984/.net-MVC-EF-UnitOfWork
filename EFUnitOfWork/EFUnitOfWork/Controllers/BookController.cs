@@ -92,7 +92,8 @@ namespace EFUnitOfWork.Controllers
                 return Json(new { status = false, msg = "请选择要上传的书籍！" });
             }
 
-            HandleUploadFiles
+            HandleUploadFiles(Request.Files, id);
+            return Json(new { status = true });
         }
 
         public void HandleUploadFiles(HttpFileCollectionBase files, Int64 id)
@@ -128,14 +129,99 @@ namespace EFUnitOfWork.Controllers
                     var storeFileName = string.Empty;
                     var result = false;
 
-                    //merge
-                    
+                    //Merge file
+                    ut.MergeFile(path, out result, out storeFileName);
 
-
-
+                    if(result)
+                    {
+                        var model = bookRepository.GetById(id);
+                        model.Url = storeFileName;
+                        bookRepository.Update(model);
+                        unitOfWork.Commit();
+                    }
 
                 });
             }
         }
+
+
+        [HttpGet, ActionName("Download")]
+        public ActionResult Download(Int64? id)
+        {
+            if (!id.HasValue) { return View("Index"); }
+            var book = bookRepository.GetById(id.Value);
+            if (ReferenceEquals(book, null))
+            {
+                return RedirectToAction("Index");
+            }
+            var fileName = book.Url;
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var uploadPath = Server.MapPath("~/APP_Data/uploads");
+            var fullPath = uploadPath + Path.DirectorySeparatorChar + fileName;
+            if (!FileHelper.Exist(fullPath))
+            {
+                return Content("<script type='text/javaScript'>alert('未上传或已删除');location.href='/';</script>");
+            }
+
+            return File(new FileStream(fullPath, FileMode.Open, FileAccess.Read), "text/plain", fileName);
+        }
+
+        /// <summary>
+        /// 获取删除书籍信息
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public ActionResult DeleteBook(int id)
+        {
+            var entity = bookRepository.GetById(id);
+            if (ReferenceEquals(entity, null))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var model = Mapper.Map<Book, BookDTO>(entity);
+
+            return View(model);
+        }
+
+
+        /// <summary>
+        /// 删除书籍
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpPost, ActionName("DeleteBook")]
+        public ActionResult ConfirmDeleteBook(int id)
+        {
+            var model = bookRepository.GetById(id);
+            bookRepository.Delete(model);
+            unitOfWork.Commit();
+            return RedirectToAction("Index");
+        }
+
+        /// <summary>
+        /// 书籍概述
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public ActionResult DetailBook(int id)
+        {
+            var model = bookRepository.GetById(id);
+
+            var bookDTO = Mapper.Map<Book, BookDTO>(model);
+
+            return View(bookDTO);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            unitOfWork.Dispose();
+            base.Dispose(disposing);
+        }
+
     }
 }

@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Entity;
+﻿using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
+using System.Data.Entity.Infrastructure.DependencyResolution;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace EF.Data.Configuration
 {
-   public class EFDbConfiguration: DbConfiguration
+    public class EFDbConfiguration: DbConfiguration
     {
         public EFDbConfiguration()
         {
@@ -17,7 +13,8 @@ namespace EF.Data.Configuration
             SetDatabaseInitializer(new NullDatabaseInitializer<EFDbContext>());
 
             //指定数据库版本
-            SetManifestTokenResolver(new ManifestTokenResolver());
+            // SetManifestTokenResolver(new ManifestTokenResolver());
+            this.AddDependencyResolver(new SingletonDependencyResolver<IManifestTokenResolver>(new ManifestTokenResolver()));
 
             //设置模型缓存
             SetModelStore(new DefaultDbModelStore(Directory.GetCurrentDirectory()));
